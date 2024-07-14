@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -63,9 +65,11 @@ class MyHomePageState extends State<MyHomePage> {
     checking = false;
   }
   Future<void> check(BuildContext context) async {
-    Uri url = Uri.parse("https://webregdailyreward.000webhostapp.com/check.php");
+    Uri url = Uri.parse("https://reg-daily-reward-api.vercel.app/api/checkPlayer");
     String res = (await http.get(url)).body;
-    if (res.contains("DONE")) {
+    var parsed = jsonDecode(res);
+    bool doneToday = parsed["result"] as bool;
+    if (doneToday) {
       showAlertDialog() {
         Widget okButton = TextButton(
           child: const Text("Ok"),
@@ -75,7 +79,7 @@ class MyHomePageState extends State<MyHomePage> {
         );
         AlertDialog alert = AlertDialog(
           title: const Text("Daily Reward"),
-          content: Text("You did it today ${res.replaceAll("DONE > ", "").split(" ")[1]}."),
+          content: Text("You claimed reward ${parsed["rewardStreak"]} today (${parsed["lastReward"]})"),
           actions: [
             okButton,
           ],
@@ -99,7 +103,7 @@ class MyHomePageState extends State<MyHomePage> {
         );
         AlertDialog alert = AlertDialog(
           title: const Text("!! Daily Reward !!"),
-          content: Text("You did NOT do it today ${res.replaceAll("DO > ", "").split(" ")[1]}.", style: const TextStyle(color: Colors.red)),
+          content: Text("You did NOT do it today (${parsed["lastReward"]}).", style: const TextStyle(color: Colors.red)),
           actions: [
             okButton,
           ],
